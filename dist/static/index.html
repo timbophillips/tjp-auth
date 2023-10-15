@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>JWT Authorisation Server</title>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/assets/users-logo.941e684c.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="module" crossorigin src="/assets/index.f7ab33a3.js"></script>
+    <link rel="stylesheet" href="/assets/style.7e37c31f.css">
+  </head>
+  <body>
+    <div
+      class="splash"
+      id="splash"
+      style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        background-color: #cddbe7;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <p style="text-align: center; vertical-align: middle; font-family: Roboto, monospace; font-size: 16px; font-weight: 400;">
+        app booting up...
+      </p>
+    </div>
+    <div style="visibility: hidden" id="header"></div>
+    <div
+      class="app w3-theme-l4 w3-padding-top-48 w3-display-container"
+      style="visibility: hidden; overflow: auto"
+      id="app"
+    ></div>
+    <div style="visibility: hidden" id="footer"></div>
+  </body>
+  
+</html>
+<tp-alert-modal id="alert"></tp-alert-modal>
+<tp-loader id="loader"></tp-loader>
+<tp-changepassword-modal id="changePasswordWC"></tp-changepassword-modal>
+<tp-editfamily-modal></tp-editfamily-modal>
+<tp-yesno-modal id="tpYesNoModal"></tp-yesno-modal>
