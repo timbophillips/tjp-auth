@@ -1,6 +1,6 @@
 import jsonfile from 'jsonfile';
 const { readFile, writeFile } = jsonfile;
-import { access, constants } from 'node:fs/promises';
+import { access } from 'node:fs/promises';
 // let database.users: User[] = [];
 // let database.tokens: RefreshToken[] = [];
 let databaseFilename;
@@ -30,7 +30,7 @@ export const localDBObject = {
 const readDatabaseFile = async () => {
     if (databaseFilename) {
         try {
-            await access(databaseFilename, constants.R_OK | constants.W_OK);
+            await access(databaseFilename);
             const databaseFileContents = await readFile(databaseFilename);
             console.log(`from the file `);
             console.table(databaseFileContents['users']);
