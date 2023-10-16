@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "undefined/subscriptions/6a152a00-4e5c-42db-8d3a-1b007cbaa10c/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/tjp-auth",
+    "appService.deploySubpath": "."
+}

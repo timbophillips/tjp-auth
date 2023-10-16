@@ -6,9 +6,6 @@
   "main": "dist/server.js",
   "author": "",
   "license": "ISC",
-  "engines": {
-    "node": "16.14.2"
-  },
   "scripts": {
     "build": "npm run copy-dist-files && npm run copy-static-files-dist && npm run copy-seed-files && npm run copy-localdatabase-files",
     "start": "node ./dist/server.js",
