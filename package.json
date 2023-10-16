@@ -7,7 +7,7 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "build": "npm run copy-dist-files && npm run copy-static-files-dist && npm run copy-seed-files && npm run copy-localdatabase-files",
+    "load": "npm run copy-dist-files && npm run copy-static-files-dist && npm run copy-seed-files && npm run copy-localdatabase-files",
     "start": "node ./dist/server.js",
     "copy-static-files-dist": "rm -rf ./dist/static && cp -r ../hasura-auth-nodejs-server/src/static ./dist/",
     "copy-dist-files": "rm -rf ./dist && cp -r ../hasura-auth-nodejs-server/dist ./",
