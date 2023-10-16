@@ -1,5 +1,9 @@
-import { fetchHasuraGraphQL, fetchHasuraMetadata, fetchHasuraRunSQL, } from "./fetch-hasura.js";
-export async function hasuraInitAndSeedDB({ seedData, uri }) {
+import { connectDB, hasuraGraphQL, hasuraMetadata, hasuraRunSQL } from './hasuraFunctions.js';
+export async function hasuraInitAndSeedDB({ seedData, uri, }) {
+    await connectDB(uri);
+    await SeedDB(seedData);
+}
+export async function SeedDB(seedData) {
     const insertUsersGQL = `#graphql
   mutation InsertUsers($users: [users_insert_input!] = {}) {
     insert_users(objects: $users) {
@@ -16,21 +20,18 @@ export async function hasuraInitAndSeedDB({ seedData, uri }) {
     }
 }`;
     const jsonClearMetadata = {
-        type: "clear_metadata",
+        type: 'clear_metadata',
         args: {},
     };
-    await fetchHasuraMetadata({
-        hasuraURI: uri,
-        json: jsonClearMetadata,
-    });
+    await hasuraMetadata(jsonClearMetadata);
     const jsonAddDatabaseMetadata = {
-        type: "pg_add_source",
+        type: 'pg_add_source',
         args: {
-            name: "authDB",
+            name: 'authDB',
             configuration: {
                 connection_info: {
                     database_url: {
-                        from_env: "PG_DATABASE_URL",
+                        from_env: 'PG_DATABASE_URL',
                     },
                     pool_settings: {
                         max_connections: 50,
@@ -40,16 +41,13 @@ export async function hasuraInitAndSeedDB({ seedData, uri }) {
                         connection_lifetime: 600,
                     },
                     use_prepared_statements: true,
-                    isolation_level: "read-committed",
+                    isolation_level: 'read-committed',
                 },
             },
             replace_configuration: true,
         },
     };
-    await fetchHasuraMetadata({
-        hasuraURI: uri,
-        json: jsonAddDatabaseMetadata,
-    });
+    await hasuraMetadata(jsonAddDatabaseMetadata);
     const sqlString = `--sql
       SET
       check_function_bodies = false;
@@ -92,49 +90,36 @@ export async function hasuraInitAndSeedDB({ seedData, uri }) {
       CONSTRAINT refresh_tokens_pkey PRIMARY KEY (token);
 
       `;
-    await fetchHasuraRunSQL({
-        hasuraURI: uri,
-        sql: sqlString,
-    });
+    await hasuraRunSQL(sqlString);
     const jsonTrackUsersTableMetadata = {
-        type: "pg_track_table",
+        type: 'pg_track_table',
         args: {
-            source: "authDB",
-            table: "users",
+            source: 'authDB',
+            table: 'users',
         },
     };
-    await fetchHasuraMetadata({
-        hasuraURI: uri,
-        json: jsonTrackUsersTableMetadata,
-    });
+    await hasuraMetadata(jsonTrackUsersTableMetadata);
     const jsonTrackRefreshTokensTableMetadata = {
-        type: "pg_track_table",
+        type: 'pg_track_table',
         args: {
-            source: "authDB",
-            table: "refresh_tokens",
+            source: 'authDB',
+            table: 'refresh_tokens',
         },
     };
-    await fetchHasuraMetadata({
-        hasuraURI: uri,
-        json: jsonTrackRefreshTokensTableMetadata,
-    });
+    await hasuraMetadata(jsonTrackRefreshTokensTableMetadata);
     const jsonReloadMetadata = {
-        type: "reload_metadata",
+        type: 'reload_metadata',
         args: {
             reload_remote_schemas: true,
             reload_sources: true,
             recreate_event_triggers: true,
         },
     };
-    await fetchHasuraMetadata({
-        hasuraURI: uri,
-        json: jsonReloadMetadata,
-    });
+    await hasuraMetadata(jsonReloadMetadata);
     const usersObject = JSON.parse(JSON.stringify(seedData));
-    const { data, errors } = await fetchHasuraGraphQL({
-        hasuraURI: uri,
-        operationName: "InsertUsers",
-        query: insertUsersGQL,
+    const { data, errors } = await hasuraGraphQL({
+        operationName: 'InsertUsers',
+        operationNode: insertUsersGQL,
         variables: { users: usersObject },
     });
     console.log(`data = ${JSON.stringify(data, null, 2)}`);

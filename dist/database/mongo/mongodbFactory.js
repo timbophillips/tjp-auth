@@ -1,8 +1,68 @@
 import { MongoClient } from 'mongodb';
+export const mongodbObject = {
+    AddTokenDB: AddTokenDB,
+    AddUserDB: AddUserDB,
+    CheckUserExistsDB: CheckUserExistsDB,
+    DeleteAllTokensOfUserDB: DeleteAllTokensOfUserDB,
+    DeleteTokenDB: DeleteTokenDB,
+    DeleteUserDB: DeleteUserDB,
+    GetAllUsersDB: GetAllUsersDB,
+    GetOnlineUsersDB: GetOnlineUsersDB,
+    GetRefreshTokenDB: GetRefreshTokenDB,
+    GetUserDB: GetUserDB,
+    GetUserWithoutPasswordByIdDB: GetUserWithoutPasswordByIdDB,
+    UpdateGroupDB: UpdateGroupDB,
+    UpdateLastSeenDB: UpdateLastSeenDB,
+    UpdatePasswordDB: UpdatePasswordDB,
+    UpdateRoleDB: UpdateRoleDB,
+    connectDB: connectDB,
+    initAndSeed: mongoInitAndMongoDB
+};
 let usersCollection;
 let refreshTokensCollection;
-export async function connectDB(uri) {
-    console.log(`made it to mongo`);
+async function mongoInitAndMongoDB({ seedData, uri, }) {
+    // set up the client
+    const client = new MongoClient(uri);
+    try {
+        // connect to the server
+        await client.connect();
+        // access the database
+        const database = client.db('auth');
+        // create the collection and empty it if it exists
+        const usersCollection = database.collection('users');
+        // empty out anything that may be in there
+        usersCollection.deleteMany({});
+        // put the array of Users in to the collection
+        const result = await usersCollection.insertMany(seedData, {
+            ordered: true,
+        });
+        // output the result of the insert
+        console.log(`${result.insertedCount} documents were inserted`);
+        // index the user id
+        usersCollection.createIndex({
+            id: 1,
+        }, {
+            unique: true,
+        });
+        // index the username
+        usersCollection.createIndex({
+            username: 1,
+        }, {
+            unique: true,
+        });
+        // test the data and output
+        const data = await usersCollection.find().toArray();
+        console.table(data);
+    }
+    catch {
+        throw new Error('mongo function failed');
+    }
+    finally {
+        // close the connection
+        await client.close();
+    }
+}
+async function connectDB(uri) {
     const mongoURL = new URL(uri);
     if (!mongoURL.port) {
         console.log('reset port to 80');
@@ -22,7 +82,7 @@ export async function connectDB(uri) {
     });
 }
 ;
-export async function GetAllUsersDB() {
+async function GetAllUsersDB() {
     const usersWithPasswords = (await usersCollection.find({}).toArray());
     return usersWithPasswords.map(user => {
         // ES6 sorcery to remove password
@@ -30,7 +90,7 @@ export async function GetAllUsersDB() {
         return userWithoutPassword;
     });
 }
-export async function GetUserDB(username) {
+async function GetUserDB(username) {
     return usersCollection
         .findOne({ username: username })
         .then((user) => {
@@ -48,7 +108,7 @@ export async function GetUserDB(username) {
         return null;
     });
 }
-export async function GetUserWithoutPasswordByIdDB(id) {
+async function GetUserWithoutPasswordByIdDB(id) {
     const idNumber = typeof id === 'string' ? +id : id;
     return usersCollection
         .findOne({ id: idNumber })
@@ -66,13 +126,13 @@ export async function GetUserWithoutPasswordByIdDB(id) {
         return null;
     });
 }
-export async function CheckUserExistsDB(username) {
+async function CheckUserExistsDB(username) {
     const user = await usersCollection.findOne({ username });
     const exists = user ? true : false;
     console.log(`mongo CheckUserExistsDB for username ${username} has returned: ${JSON.stringify(user, null, 2)} and the Promise is returning ${exists} `);
     return exists;
 }
-export async function AddUserDB(newUser) {
+async function AddUserDB(newUser) {
     // get the user with the highest "id" (not the mongodb _id)
     const highestIDUser = await usersCollection
         .find({})
@@ -107,7 +167,7 @@ export async function AddUserDB(newUser) {
         throw new Error('error caught in insertOne() command');
     });
 }
-export async function UpdatePasswordDB(
+async function UpdatePasswordDB(
 // note that this function is agnostic
 // to the encryption and should recieve the
 // already encrypted version of the password
@@ -123,7 +183,7 @@ userid, newHashPassword) {
         }
     });
 }
-export async function UpdateGroupDB(userid, newGroup) {
+async function UpdateGroupDB(userid, newGroup) {
     return usersCollection
         .findOneAndUpdate({ id: userid }, { $set: { group: newGroup } })
         .then((updatedUserOrNull) => {
@@ -135,7 +195,7 @@ export async function UpdateGroupDB(userid, newGroup) {
         }
     });
 }
-export async function UpdateLastSeenDB(user) {
+async function UpdateLastSeenDB(user) {
     const userid = typeof user === 'number' ? user : user.id;
     const today = new Date();
     return usersCollection
@@ -149,7 +209,7 @@ export async function UpdateLastSeenDB(user) {
         }
     });
 }
-export async function UpdateRoleDB(user, newRole) {
+async function UpdateRoleDB(user, newRole) {
     const userid = typeof user === 'number' ? user : user.id;
     return usersCollection
         .findOneAndUpdate({ id: userid }, { $set: { role: newRole } })
@@ -162,7 +222,7 @@ export async function UpdateRoleDB(user, newRole) {
         }
     });
 }
-export async function DeleteUserDB(user) {
+async function DeleteUserDB(user) {
     const userid = typeof user === 'number' ? user : user.id;
     return usersCollection
         .deleteOne({ id: userid })
@@ -172,7 +232,7 @@ export async function DeleteUserDB(user) {
         throw new Error('error from mongo function');
     });
 }
-export async function GetOnlineUsersDB() {
+async function GetOnlineUsersDB() {
     const aMinuteAgo = new Date(Date.now() - 1000 * 60);
     const onlineUsersWithPasswords = await usersCollection
         .find({ last_seen: { $gt: aMinuteAgo } })
@@ -187,7 +247,7 @@ export async function GetOnlineUsersDB() {
         return userWithoutPassword;
     });
 }
-export async function AddTokenDB(token) {
+async function AddTokenDB(token) {
     // add it to the database
     return refreshTokensCollection
         .insertOne(token)
@@ -204,21 +264,21 @@ export async function AddTokenDB(token) {
         throw new Error('error caught in insertOne() command');
     });
 }
-export async function GetRefreshTokenDB(tokenString) {
+async function GetRefreshTokenDB(tokenString) {
     const token = await refreshTokensCollection.findOne({ token: tokenString });
     if (!token) {
         throw new Error('GetRefreshTokenDB failed');
     }
     return token;
 }
-export async function DeleteTokenDB(tokenString) {
+async function DeleteTokenDB(tokenString) {
     const deletedToken = await (await refreshTokensCollection.findOneAndDelete({ token: tokenString }));
     if (!deletedToken) {
         throw new Error('DeleteTokenDB failed');
     }
     return deletedToken;
 }
-export async function DeleteAllTokensOfUserDB(userId) {
+async function DeleteAllTokensOfUserDB(userId) {
     return (await refreshTokensCollection.deleteMany({ user: userId }))
         .deletedCount;
 }

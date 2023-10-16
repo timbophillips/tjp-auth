@@ -70,7 +70,7 @@ async function inMemoryConnectDB(filename) {
     return { up: true, message: `local (file based) database active` };
 }
 async function inMemoryGetAllUsersDB() {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     return database.users.map((user) => {
         // ES6 sorcery to remove password
         const { password: _, ...userWithoutPassword } = user;
@@ -78,7 +78,7 @@ async function inMemoryGetAllUsersDB() {
     });
 }
 async function inMemoryGetUserDB(username) {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     const user = database.users.filter((user) => user.username === username)[0];
     if (user) {
         console.log(`username ${user.username} matched to userid=${user.id} in DB`);
@@ -90,7 +90,7 @@ async function inMemoryGetUserDB(username) {
     }
 }
 async function inMemoryGetUserWithoutPasswordByIdDB(id) {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     const idNumber = typeof id === 'string' ? +id : id;
     const user = database.users.filter((user) => user.id === idNumber)[0];
     if (user) {
@@ -105,7 +105,7 @@ async function inMemoryGetUserWithoutPasswordByIdDB(id) {
     }
 }
 async function inMemoryCheckUserExistsDB(username) {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     const user = database.users.filter((user) => user.username === username)[0];
     if (user) {
         console.log(`username ${user.username} matched to userid=${user.id} in DB (to check exists)`);
@@ -117,7 +117,7 @@ async function inMemoryCheckUserExistsDB(username) {
     }
 }
 async function inMemoryAddUserDB(newUser) {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     // get highest id value in array
     const highestID = Math.max(...database.users.map((user) => user.id));
     // set the new "id" as one higher
@@ -133,7 +133,7 @@ async function inMemoryAddUserDB(newUser) {
     // ES6 sorcery to remove password
     const { password: _, ...userWithoutPassword } = userToAdd;
     // return user without password
-    await writeDatabaseFile();
+    writeDatabaseFile();
     return userWithoutPassword;
 }
 async function inMemoryUpdatePasswordDB(
@@ -141,7 +141,7 @@ async function inMemoryUpdatePasswordDB(
 // to the encryption and should recieve the
 // already encrypted version of the password
 userid, newHashPassword) {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     let alteredUser;
     // update the password
     database.users = database.users.map((user) => {
@@ -155,7 +155,7 @@ userid, newHashPassword) {
     if (alteredUser) {
         // ES6 sorcery to remove password
         const { password: _, ...userWithoutPassword } = alteredUser;
-        await writeDatabaseFile();
+        writeDatabaseFile();
         return userWithoutPassword;
     }
     else {
@@ -163,7 +163,7 @@ userid, newHashPassword) {
     }
 }
 async function inMemoryUpdateGroupDB(userid, newGroup) {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     let alteredUser;
     // update the group
     database.users = database.users.map((user) => {
@@ -177,7 +177,7 @@ async function inMemoryUpdateGroupDB(userid, newGroup) {
     if (alteredUser) {
         // ES6 sorcery to remove password
         const { password: _, ...userWithoutPassword } = alteredUser;
-        await writeDatabaseFile();
+        writeDatabaseFile();
         return userWithoutPassword;
     }
     else {
@@ -185,7 +185,7 @@ async function inMemoryUpdateGroupDB(userid, newGroup) {
     }
 }
 async function inMemoryUpdateLastSeenDB(user) {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     const userid = typeof user === 'number' ? user : user.id;
     const today = new Date();
     let alteredUser;
@@ -201,7 +201,7 @@ async function inMemoryUpdateLastSeenDB(user) {
     if (alteredUser) {
         // ES6 sorcery to remove password
         const { password: _, ...userWithoutPassword } = alteredUser;
-        await writeDatabaseFile();
+        writeDatabaseFile();
         return userWithoutPassword;
     }
     else {
@@ -209,7 +209,7 @@ async function inMemoryUpdateLastSeenDB(user) {
     }
 }
 async function inMemoryUpdateRoleDB(user, newRole) {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     const userid = typeof user === 'number' ? user : user.id;
     let alteredUser;
     // update the password
@@ -224,7 +224,7 @@ async function inMemoryUpdateRoleDB(user, newRole) {
     if (alteredUser) {
         // ES6 sorcery to remove password
         const { password: _, ...userWithoutPassword } = alteredUser;
-        await writeDatabaseFile();
+        writeDatabaseFile();
         return userWithoutPassword;
     }
     else {
@@ -232,14 +232,14 @@ async function inMemoryUpdateRoleDB(user, newRole) {
     }
 }
 async function inMemoryDeleteUserDB(user) {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     const userid = typeof user === 'number' ? user : user.id;
     const userIndex = database.users.findIndex((eachUser) => eachUser.id === userid);
     if (userIndex > -1) {
         const deletedUser = database.users[userIndex];
         database.users.splice(userIndex, 1);
         console.log(`${deletedUser?.username} has been deleted from in-memory database`);
-        await writeDatabaseFile();
+        writeDatabaseFile();
         return true;
     }
     else {
@@ -247,7 +247,7 @@ async function inMemoryDeleteUserDB(user) {
     }
 }
 async function inMemoryGetOnlineUsersDB() {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     const aMinuteAgo = new Date(Date.now() - 1000 * 60);
     const recentlySeenUsers = [];
     database.users.forEach((user) => {
@@ -262,11 +262,11 @@ async function inMemoryGetOnlineUsersDB() {
 async function inMemoryAddTokenDB(token) {
     // add it to the database
     database.tokens.push(token);
-    await writeDatabaseFile();
+    writeDatabaseFile();
     return token;
 }
 async function inMemoryGetRefreshTokenDB(tokenString) {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     const token = database.tokens.find((token) => token.token === tokenString);
     if (!token) {
         throw new Error('GetRefreshTokenDB failed');
@@ -274,7 +274,7 @@ async function inMemoryGetRefreshTokenDB(tokenString) {
     return token;
 }
 async function inMemoryDeleteTokenDB(tokenString) {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     const tokenIndex = database.tokens.findIndex((token) => token.token === tokenString);
     const tokenToDelete = database.tokens[tokenIndex];
     if (!tokenToDelete) {
@@ -282,14 +282,14 @@ async function inMemoryDeleteTokenDB(tokenString) {
     }
     else {
         database.tokens.splice(tokenIndex, 1);
-        await writeDatabaseFile();
+        writeDatabaseFile();
         return tokenToDelete;
     }
 }
 async function inMemoryDeleteAllTokensOfUserDB(userId) {
-    await readDatabaseFile();
+    // await readDatabaseFile();
     const deletedTokens = database.tokens.filter((token) => token.user === userId);
     database.tokens = database.tokens.filter((token) => token.user !== userId);
-    await writeDatabaseFile();
+    writeDatabaseFile();
     return deletedTokens;
 }
