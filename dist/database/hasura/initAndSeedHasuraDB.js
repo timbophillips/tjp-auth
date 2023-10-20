@@ -1,9 +1,5 @@
-import { connectDB, hasuraGraphQL, hasuraMetadata, hasuraRunSQL } from './hasuraFunctions.js';
-export async function hasuraInitAndSeedDB({ seedData, uri, }) {
-    await connectDB(uri);
-    await SeedDB(seedData);
-}
-export async function SeedDB(seedData) {
+import { fetchHasuraGraphQL, fetchHasuraMetadata, fetchHasuraRunSQL, } from "./fetch-hasura.js";
+export async function hasuraInitAndSeedDB({ seedData, uri }) {
     const insertUsersGQL = `#graphql
   mutation InsertUsers($users: [users_insert_input!] = {}) {
     insert_users(objects: $users) {
@@ -20,18 +16,21 @@ export async function SeedDB(seedData) {
     }
 }`;
     const jsonClearMetadata = {
-        type: 'clear_metadata',
+        type: "clear_metadata",
         args: {},
     };
-    await hasuraMetadata(jsonClearMetadata);
+    await fetchHasuraMetadata({
+        hasuraURI: uri,
+        json: jsonClearMetadata,
+    });
     const jsonAddDatabaseMetadata = {
-        type: 'pg_add_source',
+        type: "pg_add_source",
         args: {
-            name: 'authDB',
+            name: "authDB",
             configuration: {
                 connection_info: {
                     database_url: {
-                        from_env: 'PG_DATABASE_URL',
+                        from_env: "PG_DATABASE_URL",
                     },
                     pool_settings: {
                         max_connections: 50,
@@ -41,13 +40,16 @@ export async function SeedDB(seedData) {
                         connection_lifetime: 600,
                     },
                     use_prepared_statements: true,
-                    isolation_level: 'read-committed',
+                    isolation_level: "read-committed",
                 },
             },
             replace_configuration: true,
         },
     };
-    await hasuraMetadata(jsonAddDatabaseMetadata);
+    await fetchHasuraMetadata({
+        hasuraURI: uri,
+        json: jsonAddDatabaseMetadata,
+    });
     const sqlString = `--sql
       SET
       check_function_bodies = false;
@@ -90,36 +92,49 @@ export async function SeedDB(seedData) {
       CONSTRAINT refresh_tokens_pkey PRIMARY KEY (token);
 
       `;
-    await hasuraRunSQL(sqlString);
+    await fetchHasuraRunSQL({
+        hasuraURI: uri,
+        sql: sqlString,
+    });
     const jsonTrackUsersTableMetadata = {
-        type: 'pg_track_table',
+        type: "pg_track_table",
         args: {
-            source: 'authDB',
-            table: 'users',
+            source: "authDB",
+            table: "users",
         },
     };
-    await hasuraMetadata(jsonTrackUsersTableMetadata);
+    await fetchHasuraMetadata({
+        hasuraURI: uri,
+        json: jsonTrackUsersTableMetadata,
+    });
     const jsonTrackRefreshTokensTableMetadata = {
-        type: 'pg_track_table',
+        type: "pg_track_table",
         args: {
-            source: 'authDB',
-            table: 'refresh_tokens',
+            source: "authDB",
+            table: "refresh_tokens",
         },
     };
-    await hasuraMetadata(jsonTrackRefreshTokensTableMetadata);
+    await fetchHasuraMetadata({
+        hasuraURI: uri,
+        json: jsonTrackRefreshTokensTableMetadata,
+    });
     const jsonReloadMetadata = {
-        type: 'reload_metadata',
+        type: "reload_metadata",
         args: {
             reload_remote_schemas: true,
             reload_sources: true,
             recreate_event_triggers: true,
         },
     };
-    await hasuraMetadata(jsonReloadMetadata);
+    await fetchHasuraMetadata({
+        hasuraURI: uri,
+        json: jsonReloadMetadata,
+    });
     const usersObject = JSON.parse(JSON.stringify(seedData));
-    const { data, errors } = await hasuraGraphQL({
-        operationName: 'InsertUsers',
-        operationNode: insertUsersGQL,
+    const { data, errors } = await fetchHasuraGraphQL({
+        hasuraURI: uri,
+        operationName: "InsertUsers",
+        query: insertUsersGQL,
         variables: { users: usersObject },
     });
     console.log(`data = ${JSON.stringify(data, null, 2)}`);

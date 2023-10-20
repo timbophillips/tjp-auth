@@ -1,6 +1,5 @@
 import { GenerateTokens } from '../tools/GenerateTokens.js';
-// import { AddTokenDB, UpdateLastSeenDB } from '../database/databaseFactory.js';
-import { envVariables, activeDB } from '../server.js';
+import { activeDB } from '../server.js';
 import { AlertLevel, CustomLogger } from '../tools/ConsoleLogger.js';
 export async function LastSeenAndTokensMiddleware(request, response) {
     const logger = CustomLogger("Token Generating Middleware");
@@ -8,12 +7,12 @@ export async function LastSeenAndTokensMiddleware(request, response) {
     const data = response.data || {};
     const message = response.message || 'no message';
     const error = response.error;
-    const cookieOptions = {
-        sameSite: 'strict',
-        secure: false,
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 * Number(envVariables.REFRESH_TOKEN_EXPIRES_DAYS),
-    };
+    // const cookieOptions: CookieOptions = {
+    //   sameSite: 'none',
+    //   secure: true,
+    //   httpOnly: true,
+    //   maxAge: 1000 * 60 * 60 * 24 * Number(envVariables.REFRESH_TOKEN_EXPIRES_DAYS),
+    // };
     if (error) {
         logger("Error logged", AlertLevel.warning);
         logger(`Error message: ${error} | ${message}`);
@@ -31,7 +30,7 @@ export async function LastSeenAndTokensMiddleware(request, response) {
             await activeDB.AddTokenDB(tokens.refresh_token);
             // send the response
             response
-                .cookie('refresh-token', tokens.refresh_token, cookieOptions)
+                // .cookie('refresh-token', tokens.refresh_token, cookieOptions)
                 .status(200)
                 .json({
                 jwt: tokens.jwt,
@@ -39,6 +38,7 @@ export async function LastSeenAndTokensMiddleware(request, response) {
                 data: data,
                 message: message,
                 error: error,
+                refresh_token: tokens.refresh_token
             });
             // log the result to console
         }

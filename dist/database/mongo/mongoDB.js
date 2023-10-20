@@ -2,7 +2,6 @@ import { MongoClient } from 'mongodb';
 let usersCollection;
 let refreshTokensCollection;
 export async function connectDB(uri) {
-    console.log(`made it to mongo`);
     const mongoURL = new URL(uri);
     if (!mongoURL.port) {
         console.log('reset port to 80');

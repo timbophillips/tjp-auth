@@ -35,6 +35,7 @@ import { fileURLToPath } from 'url';
 import { db } from './database/databaseFactory.js';
 import { AuthenticateMiddleware } from './middleware/AuthenticateMiddleware.js';
 import { LastSeenAndTokensMiddleware } from './middleware/LastSeenAndTokensMiddleware.js';
+import { GuestLoginMiddleware } from './middleware/GuestLoginMiddleware.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
@@ -71,9 +72,9 @@ app.get('/heartbeat', (_req, res) => {
 // [https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies]
 // because it is secure and http-only, modern browsers will automatically include this
 // with subsequent requests to this server (therefore "staying logged in")
-app.get(['/login', '/refresh'], AuthenticateMiddleware, LastSeenAndTokensMiddleware);
+app.post(['/login', '/refresh'], AuthenticateMiddleware, LastSeenAndTokensMiddleware);
 // guest user authentication
-app.get('/guestlogin/:username', AuthenticateMiddleware, LastSeenAndTokensMiddleware);
+app.get('/guestlogin/:username', GuestLoginMiddleware, LastSeenAndTokensMiddleware);
 // this route will try and work out
 // who was "logged on " on the client
 // based on the refreshToken in the cookie

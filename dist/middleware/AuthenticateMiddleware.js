@@ -4,12 +4,14 @@ import { CheckCredentials } from '../model/CheckCredentials.js';
 import { AlertLevel, CustomLogger } from '../tools/ConsoleLogger.js';
 import { activeDB } from '../server.js';
 export async function AuthenticateMiddleware(request, response, next) {
-    const logger = CustomLogger("Authentication Middleware");
+    console.log('==start');
+    console.log(JSON.stringify(request.body));
+    const logger = CustomLogger('Authentication Middleware');
     logger(`${request.method} ${request.path} request received from ${request.ip}`);
     Promise.resolve(request.headers.authorization)
         .then(async (authHeaders) => {
         if (authHeaders) {
-            logger("Using Auth Headers in request for authentication");
+            logger('Using Auth Headers in request for authentication');
             const [username, nudePassword] = Buffer.from(authHeaders.split(' ')[1] || '', 'base64')
                 .toString()
                 .split(':');
@@ -25,21 +27,37 @@ export async function AuthenticateMiddleware(request, response, next) {
             // otherwisde look for a refresh token
             if (request.cookies['refresh-token']) {
                 // and use that...
-                logger("Using refresh token (cookie) in request for authentication");
+                logger('Using refresh token (cookie) in request for authentication');
                 const userFromRefreshToken = await CheckRefreshToken(request.cookies['refresh-token']['token']);
                 if (userFromRefreshToken) {
                     return userFromRefreshToken;
                 }
                 else {
-                    logger("Supplied refresh token is invalid", AlertLevel.warning);
+                    logger('Supplied refresh token is invalid', AlertLevel.warning);
                     throw Error('Invalid refresh token');
                 }
             }
             else {
+                console.log(JSON.stringify(request.body));
+                if (request.body['token']) {
+                    // lets get the token from the json body
+                    logger('Using refresh token (json) in request for authentication');
+                    logger('Using refresh token (cookie) in request for authentication');
+                    const userFromRefreshToken = await CheckRefreshToken(request.body['token']);
+                    if (userFromRefreshToken) {
+                        return userFromRefreshToken;
+                    }
+                    else {
+                        logger('Supplied refresh token is invalid', AlertLevel.warning);
+                        throw Error('Invalid refresh token');
+                    }
+                }
+                else {
+                }
                 // otherwise see if its a guest (of a user) login
                 const guestofUsername = request.params['username'];
                 if (guestofUsername) {
-                    logger("Guest of user access requsted");
+                    logger('Guest of user access requsted');
                     const userExists = await activeDB.CheckUserExistsDB(guestofUsername);
                     if (userExists) {
                         const guestUser = {
@@ -77,7 +95,7 @@ export async function AuthenticateMiddleware(request, response, next) {
         response.message = e.message;
         // the lack of a request.user will be used by subsequent
         // middleware / routes as a signal that no user is logged in
-        logger("No user logged in");
+        logger('No user logged in');
         return next();
     });
 }
