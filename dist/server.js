@@ -39,19 +39,15 @@ import { GuestLoginMiddleware } from './middleware/GuestLoginMiddleware.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
+app.use(cors());
 app.use(json());
 app.use(cookieParser(envVariables.COOKIE_SECRET));
-app.use(cors({
-    origin: true,
-    exposedHeaders: ['set-cookie', 'Set-Cookie'],
-    credentials: true,
-}));
 const staticFolder = path.join(__dirname + '/static/');
 console.log(chalk.gray(`Serving static files from: `) + chalk.blue(staticFolder));
 console.log(' ');
 app.use('/', express.static(staticFolder));
 // generic message
-app.get('/heartbeat', (_req, res) => {
+app.post('/heartbeat', (_req, res) => {
     res.json({ data: 'up' });
 });
 // Both GET /login and GET /refreh acutally execute the same code...
@@ -74,11 +70,11 @@ app.get('/heartbeat', (_req, res) => {
 // with subsequent requests to this server (therefore "staying logged in")
 app.post(['/login', '/refresh'], AuthenticateMiddleware, LastSeenAndTokensMiddleware);
 // guest user authentication
-app.get('/guestlogin/:username', GuestLoginMiddleware, LastSeenAndTokensMiddleware);
+app.post('/guestlogin/:username', GuestLoginMiddleware, LastSeenAndTokensMiddleware);
 // this route will try and work out
 // who was "logged on " on the client
 // based on the refreshToken in the cookie
-app.get('/logout', AuthenticateMiddleware, LogOutRoute, LastSeenAndTokensMiddleware);
+app.post('/logout', AuthenticateMiddleware, LogOutRoute, LastSeenAndTokensMiddleware);
 // password changing.. test with
 // http --auth Dad:password POST :3000/changepassword userid=7 newPassword=password2
 app.post('/resetpassword', AuthenticateMiddleware, ResetPasswordRoute, LastSeenAndTokensMiddleware);
@@ -90,14 +86,14 @@ app.post('/changegroup', AuthenticateMiddleware, ChangeGroupRoute, LastSeenAndTo
 app.post('/deleteuser', AuthenticateMiddleware, newDeleteUserRoute, LastSeenAndTokensMiddleware);
 app.post('/adduser', AuthenticateMiddleware, AddUserRoute, LastSeenAndTokensMiddleware);
 //check user exists
-// app.get('/checkuserexists/:username', CheckUserExists);
-app.get('/checkuserexists/:username', AuthenticateMiddleware, CheckUserExistsRoute, LastSeenAndTokensMiddleware);
+// app.post('/checkuserexists/:username', CheckUserExists);
+app.post('/checkuserexists/:username', AuthenticateMiddleware, CheckUserExistsRoute, LastSeenAndTokensMiddleware);
 // looks for refresh token or credentials
 // to decide if user is admin
 // then responds with users array
-app.get('/users', AuthenticateMiddleware, GetAllUsersRoute, LastSeenAndTokensMiddleware);
-app.get('/get-user/:id', AuthenticateMiddleware, GetUserRoute, LastSeenAndTokensMiddleware);
-app.get('/recentusers', AuthenticateMiddleware, GetRecentlySeenUsersRoute, LastSeenAndTokensMiddleware);
+app.post('/users', AuthenticateMiddleware, GetAllUsersRoute, LastSeenAndTokensMiddleware);
+app.post('/get-user/:id', AuthenticateMiddleware, GetUserRoute, LastSeenAndTokensMiddleware);
+app.post('/recentusers', AuthenticateMiddleware, GetRecentlySeenUsersRoute, LastSeenAndTokensMiddleware);
 // Hasura webhook server
 // test by using httpie
 // http -v :3000/webhook --auth jessica:2114
@@ -108,7 +104,7 @@ app.get('/recentusers', AuthenticateMiddleware, GetRecentlySeenUsersRoute, LastS
 // (which is base64 for jessica:2114)
 // and then remove the hasura-collaborator-token Header
 // (which is effectively using the admin secret key)
-app.get('/webhook', HasuraWebhookRoute);
+app.post('/webhook', HasuraWebhookRoute);
 // catch all other routes (partly to workaround the issue of the static site containing its own router)
 app.use('*', express.static(path.join(__dirname + '/static')));
 // // connect to users database
