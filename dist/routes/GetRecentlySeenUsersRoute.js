@@ -1,5 +1,6 @@
-// import { GetOnlineUsersDB } from '../database/databaseFactory.js';
 import { activeDB } from '../server.js';
+import { CustomLogger } from '../tools/ConsoleLogger.js';
+const logger = CustomLogger('Recently seen route');
 export async function GetRecentlySeenUsersRoute(request, response, next) {
     // get logged in user (put in request by AuthenticationMiddleware.ts)
     const loggedInUser = request.user;
@@ -16,7 +17,7 @@ export async function GetRecentlySeenUsersRoute(request, response, next) {
             response.message = 'only an admin user can see all recent users this';
             const allRecentUsers = await activeDB.GetOnlineUsersDB();
             const justTheOnesYoureAllowedToSee = allRecentUsers.filter((user) => user.id === loggedInUser.id);
-            console.log(`justTheOnesYoureAllowedToSee = ${JSON.stringify(justTheOnesYoureAllowedToSee, null, 2)}`);
+            logger(`justTheOnesYoureAllowedToSee = ${JSON.stringify(justTheOnesYoureAllowedToSee, null, 2)}`);
             response.data = justTheOnesYoureAllowedToSee;
             next();
         }

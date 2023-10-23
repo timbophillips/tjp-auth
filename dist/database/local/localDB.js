@@ -1,8 +1,8 @@
 import jsonfile from 'jsonfile';
 const { readFile, writeFile } = jsonfile;
 import { access } from 'node:fs/promises';
-// let database.users: User[] = [];
-// let database.tokens: RefreshToken[] = [];
+import { CustomLogger } from '../../tools/ConsoleLogger.js';
+const logger = CustomLogger('Local database');
 let databaseFilename;
 let database = {
     users: [],
@@ -32,40 +32,40 @@ const readDatabaseFile = async () => {
         try {
             await access(databaseFilename);
             const databaseFileContents = await readFile(databaseFilename);
-            console.log(`from the file `);
+            logger(`from the file `);
             console.table(databaseFileContents['users']);
             console.table(databaseFileContents['tokens']);
             database = databaseFileContents || database;
         }
         catch {
-            console.log(`${databaseFilename} doesn't exist`);
+            logger(`${databaseFilename} doesn't exist`);
         }
         return true;
     }
     else {
-        console.log(`no database filename provided in environment variables`);
+        logger(`no database filename provided in environment variables`);
         return false;
     }
 };
 const writeDatabaseFile = async () => writeFile(databaseFilename, database)
     .then((x) => {
-    console.log(`written JSON to database local file`);
+    logger(`written JSON to database local file`);
     return x;
 })
     .catch((e) => {
-    console.log(`error in writing JSON to database local file`);
+    logger(`error in writing JSON to database local file`);
     console.error(e);
 });
 export async function SeedDB(seedData) {
     database.users = seedData;
-    console.log(`In Memory Database seeded with provided users...`);
-    console.log(`writing data to disk`);
+    logger(`In Memory Database seeded with provided users...`);
+    logger(`writing data to disk`);
     await writeDatabaseFile();
     return (await inMemoryGetAllUsersDB());
 }
 async function inMemoryConnectDB(filename) {
     databaseFilename = filename;
-    console.log(`Parsng and local database file: ${databaseFilename}....`);
+    logger(`Parsng and local database file: ${databaseFilename}....`);
     await readDatabaseFile();
     return { up: true, message: `local (file based) database active` };
 }
@@ -81,11 +81,11 @@ async function inMemoryGetUserDB(username) {
     // await readDatabaseFile();
     const user = database.users.filter((user) => user.username === username)[0];
     if (user) {
-        console.log(`username ${user.username} matched to userid=${user.id} in DB`);
+        logger(`username ${user.username} matched to userid=${user.id} in DB`);
         return user;
     }
     else {
-        console.log(`username ${username} not found in DB`);
+        logger(`username ${username} not found in DB`);
         return null;
     }
 }
@@ -94,13 +94,13 @@ async function inMemoryGetUserWithoutPasswordByIdDB(id) {
     const idNumber = typeof id === 'string' ? +id : id;
     const user = database.users.filter((user) => user.id === idNumber)[0];
     if (user) {
-        console.log(`username ${user.username} matched to userid=${user.id} in DB`);
+        logger(`username ${user.username} matched to userid=${user.id} in DB`);
         // ES6 sorcery to remove password
         const { password: _, ...userWithoutPassword } = user;
         return userWithoutPassword;
     }
     else {
-        console.log(`user id ${idNumber.toString()} not found in DB`);
+        logger(`user id ${idNumber.toString()} not found in DB`);
         return null;
     }
 }
@@ -108,11 +108,11 @@ async function inMemoryCheckUserExistsDB(username) {
     // await readDatabaseFile();
     const user = database.users.filter((user) => user.username === username)[0];
     if (user) {
-        console.log(`username ${user.username} matched to userid=${user.id} in DB (to check exists)`);
+        logger(`username ${user.username} matched to userid=${user.id} in DB (to check exists)`);
         return true;
     }
     else {
-        console.log(`username ${username} not found in DB (so doesn't exist)`);
+        logger(`username ${username} not found in DB (so doesn't exist)`);
         return false;
     }
 }
@@ -148,7 +148,7 @@ userid, newHashPassword) {
         if (user.id === userid) {
             user.password = newHashPassword;
             alteredUser = user;
-            console.log(`user matched to ${user.username} in in-memory database and password changed`);
+            logger(`user matched to ${user.username} in in-memory database and password changed`);
         }
         return user;
     });
@@ -170,7 +170,7 @@ async function inMemoryUpdateGroupDB(userid, newGroup) {
         if (user.id === userid) {
             user.group = newGroup;
             alteredUser = user;
-            console.log(`user matched to ${user.username} in in-memory database and group changed to ${newGroup}`);
+            logger(`user matched to ${user.username} in in-memory database and group changed to ${newGroup}`);
         }
         return user;
     });
@@ -194,7 +194,7 @@ async function inMemoryUpdateLastSeenDB(user) {
         if (user.id === userid) {
             user.last_seen = today;
             alteredUser = user;
-            console.log(`user matched to ${user.username} in in-memory database and last seen changed to ${today}`);
+            logger(`user matched to ${user.username} in in-memory database and last seen changed to ${today}`);
         }
         return user;
     });
@@ -217,7 +217,7 @@ async function inMemoryUpdateRoleDB(user, newRole) {
         if (user.id === userid) {
             user.role = newRole;
             alteredUser = user;
-            console.log(`user matched to ${user.username} in in-memory database and role changed to ${newRole}`);
+            logger(`user matched to ${user.username} in in-memory database and role changed to ${newRole}`);
         }
         return user;
     });
@@ -238,7 +238,7 @@ async function inMemoryDeleteUserDB(user) {
     if (userIndex > -1) {
         const deletedUser = database.users[userIndex];
         database.users.splice(userIndex, 1);
-        console.log(`${deletedUser?.username} has been deleted from in-memory database`);
+        logger(`${deletedUser?.username} has been deleted from in-memory database`);
         writeDatabaseFile();
         return true;
     }

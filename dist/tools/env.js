@@ -1,5 +1,7 @@
 import * as dotenv from 'dotenv';
 import chalk from 'chalk';
+// import { AlertLevel, CustomLogger } from '../tools/ConsoleLogger.js';
+// const logger = CustomLogger('Environment variable function');
 export function env(defaultVariables, log = true) {
     let resultVariables = { ...defaultVariables };
     let processEnvVariables = { ...defaultVariables };

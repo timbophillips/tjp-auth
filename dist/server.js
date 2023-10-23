@@ -4,16 +4,16 @@
 //  node -r dotenv/config server.js
 //  rather than node server.js
 import { env } from './tools/env.js';
-import chalk from 'chalk';
+import { AlertLevel, CustomLogger } from './tools/ConsoleLogger.js';
+const logger = CustomLogger('Server');
 export const envVariables = env({
     USERS_DB_TYPE: 'mongodb',
     USERS_DB_URI: 'inMemory',
     HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256","key": "m8JuVXnvejQg5fMfOotzuehqrpQp0jB/2Ga3cww4ZmCeAMRj0ROEstE31qP/+IJW"}',
     JWT_TOKEN_EXPIRES_MINS: '20',
     REFRESH_TOKEN_EXPIRES_DAYS: '1',
-    COOKIE_SECRET: 'cookiesecret',
     PORT: '3000',
-    SEED_USERS_JSON_FILE: ''
+    SEED_USERS_JSON_FILE: '',
 });
 import { HasuraWebhookRoute } from './routes/HasuraWebhookRoute.js';
 import { GetRecentlySeenUsersRoute } from './routes/GetRecentlySeenUsersRoute.js';
@@ -28,7 +28,6 @@ import { ChangeGroupRoute } from './routes/ChangeGroupRoute.js';
 import { ResetPasswordRoute } from './routes/ResetPasswordRoute.js';
 import { readFile } from 'fs/promises';
 import express, { json } from 'express';
-import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -41,25 +40,21 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(cors());
 app.use(json());
-app.use(cookieParser(envVariables.COOKIE_SECRET));
 const staticFolder = path.join(__dirname + '/static/');
-console.log(chalk.gray(`Serving static files from: `) + chalk.blue(staticFolder));
-console.log(' ');
+logger(`Serving static files from: ${staticFolder}`, AlertLevel.info);
 app.use('/', express.static(staticFolder));
 // generic message
 app.post('/heartbeat', (_req, res) => {
     res.json({ data: 'up' });
 });
-// Both GET /login and GET /refreh acutally execute the same code...
+// Both POST /login and POST /refreh acutally execute the same code...
 // There are two ways of authenticating:
 // include username: password in auth header(usually using GET / login)
 // as per [https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization]
-// or 
-// the client (web browser) automatically inlcudes the secure HTTP-only cooke
-// [referred to as a refresh token]
-// that it recieved from the server following a successful login.
-// usually this is used with GET /refresh
-// 
+// or
+// the client (web browser) includes the refresh token in the json body of the
+// POST request
+//
 // if credentials or refresh token are vaid then the response will include
 // a JWT in the body JSON which can be used to log in to the Hasura database
 // [ see https://hasura.io/docs/latest/auth/authentication/jwt/ ]
@@ -110,30 +105,22 @@ app.use('*', express.static(path.join(__dirname + '/static')));
 // // connect to users database
 const dbChoice = envVariables.USERS_DB_TYPE;
 export const activeDB = db(dbChoice);
-process.stdout.write(chalk.gray.bold(`Connecting to database: `) + chalk.greenBright(envVariables.USERS_DB_URI) + chalk.gray.bold(`... `));
-await activeDB.ConnectDB(envVariables.USERS_DB_URI)
-    .then((result) => {
+logger(`Connecting to database: ${envVariables.USERS_DB_URI}`);
+await activeDB.ConnectDB(envVariables.USERS_DB_URI).then((result) => {
     if (!result.up) {
-        console.log(chalk.red.bold(result.message));
-        console.log(' ');
-        console.log(chalk.bgRed.whiteBright(`NodeJS server exiting (no backend database)`));
-        console.log(' ');
+        logger(`NodeJS server exiting (backed database failure at ${envVariables.USERS_DB_URI}`, AlertLevel.problem);
         process.exit(0);
     }
     else {
-        console.log(chalk.green.bold(result.message));
-        console.log(' ');
-        console.log(chalk.whiteBright.bold(`NodeJS server starting...`));
-        console.log(' ');
+        logger(`NodeJS server starting`, AlertLevel.info);
     }
 });
-// .catch(console.error);
 if (envVariables.SEED_USERS_JSON_FILE) {
-    console.log(`Parsng and uploading seed data from ${envVariables.SEED_USERS_JSON_FILE}....`);
+    logger(`Parsng and uploading seed data from ${envVariables.SEED_USERS_JSON_FILE}....`);
     const seedData = JSON.parse(await readFile(envVariables.SEED_USERS_JSON_FILE, { encoding: 'utf8' }));
     console.table(await activeDB.SeedDB(seedData));
 }
 // start Express server
 app.listen(Number(envVariables.PORT), () => {
-    console.log(`JWT Authorisation Server listening on port ${Number(envVariables.PORT)}`);
+    logger(`JWT Authorisation Server listening on port ${Number(envVariables.PORT)}`);
 });

@@ -4,7 +4,6 @@ export async function inMemoryInitAndSeedDB({ seedData, uri, }) {
     inMemoryUsersDatabase = seedData;
     console.log(uri ? `provided uri (${uri}) ignored` : "");
     console.log(`In Memory Database seeded with provided users...`);
-    console.table(inMemoryUsersDatabase);
 }
 export async function inMemoryConnectDB(_uri) {
     return { up: true, message: `In-memory database (no persistence) active` };

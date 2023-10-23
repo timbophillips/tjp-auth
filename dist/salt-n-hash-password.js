@@ -1,4 +1,6 @@
 import { hash, genSalt, compare } from 'bcryptjs';
+import { AlertLevel, CustomLogger } from './tools/ConsoleLogger.js';
+const logger = CustomLogger('Encryption Function');
 const rawPassword = process.argv[2];
 let encryptedPassword;
 let doTheyMatch;
@@ -13,5 +15,5 @@ encryptPassword(rawPassword)
 })
     .then((b) => {
     doTheyMatch = b;
-    console.log(`${rawPassword} was encrypted to ${encryptedPassword} and the compare function returned ${doTheyMatch}`);
+    logger(`${rawPassword} was encrypted to ${encryptedPassword} and the compare function returned ${doTheyMatch}`, AlertLevel.info);
 });

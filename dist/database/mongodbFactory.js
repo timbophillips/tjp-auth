@@ -1,4 +1,6 @@
 import { MongoClient } from 'mongodb';
+import { CustomLogger } from '../tools/ConsoleLogger.js';
+const logger = CustomLogger('MongoDB Database');
 export const mongodbObject = {
     AddTokenDB: AddTokenDB,
     AddUserDB: AddUserDB,
@@ -30,7 +32,7 @@ async function SeedDB(seedData) {
             ordered: true,
         });
         // output the result of the insert
-        console.log(`${result.insertedCount} documents were inserted`);
+        logger(`${result.insertedCount} documents were inserted`);
         // index the user id
         usersCollection.createIndex({
             id: 1,
@@ -56,7 +58,7 @@ async function SeedDB(seedData) {
 async function connectDB(uri) {
     const mongoURL = new URL(uri);
     if (!mongoURL.port) {
-        console.log('reset port to 80');
+        logger('reset port to 80');
         mongoURL.port = '80';
     }
     const client = new MongoClient(uri);
@@ -86,11 +88,11 @@ async function GetUserDB(username) {
         .findOne({ username: username })
         .then((user) => {
         if (user) {
-            console.log(`username ${user.username} matched to userid=${user.id} in DB`);
+            logger(`username ${user.username} matched to userid=${user.id} in DB`);
             return user;
         }
         else {
-            console.log(`username ${username} not found in DB`);
+            logger(`username ${username} not found in DB`);
             return null;
         }
     })
@@ -120,7 +122,7 @@ async function GetUserWithoutPasswordByIdDB(id) {
 async function CheckUserExistsDB(username) {
     const user = await usersCollection.findOne({ username });
     const exists = user ? true : false;
-    console.log(`mongo CheckUserExistsDB for username ${username} has returned: ${JSON.stringify(user, null, 2)} and the Promise is returning ${exists} `);
+    logger(`mongo CheckUserExistsDB for username ${username} has returned: ${JSON.stringify(user, null, 2)} and the Promise is returning ${exists} `);
     return exists;
 }
 async function AddUserDB(newUser) {

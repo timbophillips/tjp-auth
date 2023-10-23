@@ -1,4 +1,6 @@
 import fetch from 'node-fetch';
+import { CustomLogger } from '../../tools/ConsoleLogger.js';
+const logger = CustomLogger('Hasura Database');
 export class HasuraDB {
     hasuraAdminSecret = '';
     hasuraGraphQLEndpoint = '';
@@ -58,7 +60,7 @@ export class HasuraDB {
     async hasuraMetadata(json) {
         const hasuraAdminSecret = this.hasuraURL.username || undefined;
         const jsonString = typeof json === 'string' ? json : JSON.stringify(json);
-        console.log(`hasura endpoint for metadata fetch: ${this.hasuraMetadataEndpoint}`);
+        logger(`hasura endpoint for metadata fetch: ${this.hasuraMetadataEndpoint}`);
         const response = await fetch(this.hasuraMetadataEndpoint, {
             method: 'POST',
             headers: hasuraAdminSecret
@@ -66,14 +68,14 @@ export class HasuraDB {
                 : { 'X-Hasura-Role': 'admin', 'Content-Type': 'application/json' },
             body: jsonString,
         });
-        console.log(`Response status for metadata fetch: ${response.status}`);
+        logger(`Response status for metadata fetch: ${response.status}`);
         const responseJSON = await response.json();
-        console.log(`Response JSON from metadata fetch`);
+        logger(`Response JSON from metadata fetch`);
         console.table(responseJSON);
         return (responseJSON);
     }
     async hasuraRunSQL(sql) {
-        console.log(`hasura endpoint for SQL fetch: ${this.hasuraSQLEndpoint}`);
+        logger(`hasura endpoint for SQL fetch: ${this.hasuraSQLEndpoint}`);
         const response = await fetch(this.hasuraSQLEndpoint, {
             method: 'POST',
             headers: this.hasuraAdminSecret
@@ -87,9 +89,9 @@ export class HasuraDB {
                 },
             }),
         });
-        console.log(`Response status for SQL fetch: : ${response.status}`);
+        logger(`Response status for SQL fetch: : ${response.status}`);
         const responseJSON = await response.json();
-        console.log(`Response JSON from SQL fetch`);
+        logger(`Response JSON from SQL fetch`);
         console.table(responseJSON);
         return responseJSON;
     }

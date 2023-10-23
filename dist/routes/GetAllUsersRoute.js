@@ -1,4 +1,3 @@
-// import { GetAllUsersDB, GetUserDB } from '../database/databaseFactory.js';
 import { activeDB } from '../server.js';
 export async function GetAllUsersRoute(request, response, next) {
     const loggedInUser = request.user;
@@ -10,7 +9,6 @@ export async function GetAllUsersRoute(request, response, next) {
             message = 'admin users can view all users';
         }
         else {
-            console.log(`=============================> GetAllUsersRoute---> normal user  `);
             data = [await activeDB.GetUserDB(loggedInUser.username)];
             message = 'non-admin users can only view themselves';
         }

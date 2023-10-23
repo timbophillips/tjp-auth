@@ -1,6 +1,5 @@
 import { MongoClient } from 'mongodb';
 export async function mongoInitAndMongoDB({ seedData, uri, }) {
-    console.log(`made it to mongo seed`);
     // set up the client
     const client = new MongoClient(uri);
     try {

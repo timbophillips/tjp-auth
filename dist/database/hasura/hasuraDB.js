@@ -1,4 +1,6 @@
 import { HasuraDB } from './hasuraClass.js';
+import { CustomLogger } from '../../tools/ConsoleLogger.js';
+const logger = CustomLogger('Hasura database functions');
 let hasuraDB;
 // backwards compatibility
 export async function ConnectDB(uri) {
@@ -124,8 +126,8 @@ export async function SeedDB(seedData) {
         operationNode: insertUsersGQL,
         variables: { users: usersObject },
     });
-    console.log(`data = ${JSON.stringify(data, null, 2)}`);
-    console.log(`errors = ${JSON.stringify(errors, null, 2)}`);
+    logger(`data = ${JSON.stringify(data, null, 2)}`);
+    logger(`errors = ${JSON.stringify(errors, null, 2)}`);
     return (await GetAllUsersDB());
 }
 export async function GetAllUsersDB() {
@@ -174,11 +176,11 @@ export async function GetUserDB(username) {
     });
     const user = data['users'][0];
     if (user) {
-        console.log(`username ${user.username} matched to userid=${user.id} in DB`);
+        logger(`username ${user.username} matched to userid=${user.id} in DB`);
         return user;
     }
     else {
-        console.log(`username ${username} not found in DB`);
+        logger(`username ${username} not found in DB`);
         return null;
     }
 }
@@ -202,7 +204,7 @@ export async function GetUserWithoutPasswordByIdDB(id) {
     });
     const user = data['users'][0];
     if (user) {
-        console.log(`GetUserWithoutPasswordById:: username ${user.username} matched to userid=${user.id} in DB`);
+        logger(`GetUserWithoutPasswordById:: username ${user.username} matched to userid=${user.id} in DB`);
         return user;
     }
     else {
@@ -240,7 +242,7 @@ async function getHighestID() {
 }
 export async function AddUserDB(newUser) {
     const nextID = (await getHighestID()) + 1;
-    console.log(`the next ID to be used is ${nextID}`);
+    logger(`the next ID to be used is ${nextID}`);
     const { data } = await hasuraDB.hasuraGraphQL({
         operationNode: `#graphql
       mutation AddUser(
@@ -342,7 +344,7 @@ export async function UpdateGroupDB(userid, newGroup) {
 export async function UpdateLastSeenDB(user) {
     const userid = typeof user === 'number' ? user : user.id;
     const today = new Date();
-    console.log(`updating last seen for userid ${userid}`);
+    logger(`updating last seen for userid ${userid}`);
     const { data } = await hasuraDB.hasuraGraphQL({
         operationNode: `#graphql
       mutation UpdateLastSeen($user_id: Int, $today: timestamptz) {
@@ -426,7 +428,7 @@ export async function DeleteUserDB(user) {
 }
 export async function GetOnlineUsersDB() {
     const aMinuteAgo = new Date(Date.now() - 1000 * 60).toISOString();
-    console.log(`going to try and do online users for time = ${aMinuteAgo}`);
+    logger(`going to try and do online users for time = ${aMinuteAgo}`);
     const { data } = await hasuraDB.hasuraGraphQL({
         operationNode: `#graphql
       query OnlineUsers($aMinuteAgo: timestamptz) {
@@ -446,8 +448,8 @@ export async function GetOnlineUsersDB() {
     });
     const onlineUsers = data['users'];
     if (onlineUsers) {
-        console.log(`online users:`);
-        console.log(JSON.stringify(onlineUsers, null, 2));
+        logger(`online users:`);
+        logger(JSON.stringify(onlineUsers, null, 2));
         return onlineUsers;
     }
     else {
@@ -541,6 +543,6 @@ export async function DeleteAllTokensOfUserDB(userId) {
         variables: { user: userId },
     });
     const deletedTokens = data['delete_refresh_tokens'].returning;
-    console.log(`deleting tokens: ${JSON.stringify(deletedTokens)}`);
+    logger(`deleting tokens: ${JSON.stringify(deletedTokens)}`);
     return deletedTokens;
 }

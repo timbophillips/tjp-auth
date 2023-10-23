@@ -1,5 +1,6 @@
-// import { GetUserDB } from '../database/databaseFactory.js';
 import { activeDB } from '../server.js';
+import { CustomLogger } from '../tools/ConsoleLogger.js';
+const logger = CustomLogger('Credential functions');
 //ESM
 import pkg from 'bcryptjs';
 const { compareSync } = pkg;
@@ -7,7 +8,7 @@ export async function CheckCredentials(credentials) {
     return activeDB.GetUserDB(credentials.username).then((user) => {
         if (user) {
             if (compareSync(credentials.nudePassword, user.password)) {
-                console.log(`supplied password for ${credentials.username} matches encrypted password in database`);
+                logger(`supplied password for ${credentials.username} matches encrypted password in database`);
                 // ES6 sorcery to remove password
                 const { password: _, ...userWithoutPassword } = user;
                 return userWithoutPassword;

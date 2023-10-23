@@ -41,7 +41,6 @@ export async function newDeleteUserRoute(request, response, next) {
             return next();
         }
         // if we have made it this far then delete the user
-        console.log(`we have made it this far and (loggedInUser.id === IdOfUserToDelete) = ${(loggedInUser.id === IdOfUserToDelete)} `);
         const deletedUserBoolean = await activeDB.DeleteUserDB(IdOfUserToDelete);
         // put data in response for middleware
         response.data = {
