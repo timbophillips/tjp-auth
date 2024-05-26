@@ -5,9 +5,13 @@
   "description": "Node JS server providing JWT and webhook based authorization for Hasura",
   "main": "dist/server.js",
   "scripts": {
-    "start": "npm run build && node ./dist/server.js",
-
-  },
+    "load": "npm run copy-dist-files && npm run copy-static-files-dist && npm run copy-seed-files && npm run copy-localdatabase-files",
+    "start": "node ./dist/server.js",
+    "copy-static-files-dist": "rm -rf ./dist/static && cp -r ../hasura-auth-nodejs-server/src/static ./dist/",
+    "copy-dist-files": "rm -rf ./dist && cp -r ../hasura-auth-nodejs-server/dist ./",
+    "copy-seed-files": "rm -rf ./examples/* && cp -r ../hasura-auth-nodejs-server/examples/example-users.json ./examples/",
+    "copy-localdatabase-files": "rm -rf ./local-database && cp -r ../hasura-auth-nodejs-server/local-database ./",
+    "serve": "npm run build && npm run start"  },
   "author": "",
   "license": "ISC",
   "dependencies": {
