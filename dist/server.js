@@ -45,7 +45,7 @@ logger(`Serving static files from: ${staticFolder}`, AlertLevel.info);
 app.use('/', express.static(staticFolder));
 // generic message
 app.post('/heartbeat', (_req, res) => {
-    res.json({ data: 'up' });
+    res.json({ data: [], message: "up" });
 });
 // Both POST /login and POST /refreh acutally execute the same code...
 // There are two ways of authenticating:
@@ -59,10 +59,6 @@ app.post('/heartbeat', (_req, res) => {
 // a JWT in the body JSON which can be used to log in to the Hasura database
 // [ see https://hasura.io/docs/latest/auth/authentication/jwt/ ]
 //
-// ... and a refresh token as a secure HTTP - only cookie
-// [https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies]
-// because it is secure and http-only, modern browsers will automatically include this
-// with subsequent requests to this server (therefore "staying logged in")
 app.post(['/login', '/refresh'], AuthenticateMiddleware, LastSeenAndTokensMiddleware);
 // guest user authentication
 app.post('/guestlogin/:username', GuestLoginMiddleware, LastSeenAndTokensMiddleware);

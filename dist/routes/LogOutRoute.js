@@ -3,7 +3,7 @@ import { activeDB } from '../server.js';
 export async function LogOutRoute(request, response, next) {
     // check that someone is logged in
     if (!request.user) {
-        response.error = 'Logout';
+        // response.error = 'Logout';
         response.message =
             'Logout requested but no user logged in from this browser';
         return next();
@@ -17,7 +17,7 @@ export async function LogOutRoute(request, response, next) {
         // delete their tokens
         await activeDB.DeleteAllTokensOfUserDB(loggedInUser.id);
         // put data in response for middleware
-        response.data = {};
+        response.data = [];
         response.message = `${loggedInUser.username} has been logged out`;
         // onward with the next bit of middleware
         return next();

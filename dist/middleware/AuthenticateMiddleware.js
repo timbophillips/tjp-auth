@@ -27,7 +27,6 @@ export async function AuthenticateMiddleware(request, response, next) {
             if (request.body['token']) {
                 // lets get the token from the json body
                 logger('Using refresh token (json) in request for authentication');
-                logger('Using refresh token (cookie) in request for authentication');
                 const userFromRefreshToken = await CheckRefreshToken(request.body['token']);
                 if (userFromRefreshToken) {
                     return userFromRefreshToken;

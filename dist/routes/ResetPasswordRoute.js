@@ -4,7 +4,7 @@ import { activeDB } from '../server.js';
 // import {UpdatePasswordDB } from '../database/databaseFactory.js'
 export async function ResetPasswordRoute(request, response, next) {
     if (!request.user) {
-        response.data = { error: 'Authorization' };
+        response.data = [{ error: 'Authorization' }];
         response.message = 'Not authorized to reset (not logged in)';
         return next();
     }
@@ -38,7 +38,7 @@ export async function ResetPasswordRoute(request, response, next) {
                     // get logged in user (put in request by AuthenticationMiddleware.ts)
                     const result = await activeDB.UpdatePasswordDB(userIdWhoNeedsPasswordChanged, encryptedPassword);
                     // put data in response for middleware
-                    response.data = { newPassword: '*******' };
+                    response.data = [{ newPassword: '*******' }];
                     response.message = `Password changed for ${result.username}`;
                     // onward with the next bit of middle
                     return next();

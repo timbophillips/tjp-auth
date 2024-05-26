@@ -3,7 +3,7 @@ import { EncryptPassword } from '../tools/EncryptPassword.js';
 import { activeDB } from '../server.js';
 export async function AddUserRoute(request, response, next) {
     if (!request.user) {
-        response.data = { error: 'Authorization' };
+        response.data = [{ error: 'Authorization' }];
         response.message = 'Not authorized to add user (not logged in)';
         return next();
     }
@@ -53,7 +53,8 @@ export async function AddUserRoute(request, response, next) {
             group: groupForNewUser,
         });
         // put data in response for middleware
-        response.data = { newuser: newUser };
+        //response.data = { newuser: newUser };
+        response.data = [newUser];
         response.message = `new user ${newUsername} added`;
         // onward with the next bit of middle
         return next();

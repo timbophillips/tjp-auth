@@ -12,8 +12,8 @@ export async function CheckUserExistsRoute(request, response, next) {
         // if we made it here then check the username
         const exists = await activeDB.CheckUserExistsDB(username);
         // put data in response for middleware
-        response.data = { username, exists };
-        response.message = `${username} exists on this server`;
+        response.data = [{ username, exists }];
+        response.message = `check the data field to see if ${username} exists`;
         // onward with the next bit of middleware
         return next();
     }

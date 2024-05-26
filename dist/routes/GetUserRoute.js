@@ -16,7 +16,7 @@ export async function GetUserRoute(request, response, next) {
             loggedInUser?.id.toString() === userid) {
             const retrievedUser = await activeDB.GetUserWithoutPasswordByIdDB(userid).catch((_e) => null);
             if (retrievedUser) {
-                response.data = retrievedUser;
+                response.data = [retrievedUser];
                 response.message = `user ${retrievedUser.username} found in database`;
             }
             else {

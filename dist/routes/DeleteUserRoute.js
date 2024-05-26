@@ -43,10 +43,10 @@ export async function newDeleteUserRoute(request, response, next) {
         // if we have made it this far then delete the user
         const deletedUserBoolean = await activeDB.DeleteUserDB(IdOfUserToDelete);
         // put data in response for middleware
-        response.data = {
-            userDeleted: deletedUserBoolean,
-            DeleteUserID: IdOfUserToDelete,
-        };
+        response.data = [{
+                userDeleted: deletedUserBoolean,
+                DeleteUserID: IdOfUserToDelete,
+            }];
         response.message = `${userToDelete?.username} ${deletedUserBoolean ? 'has' : 'has not'} been deleted`;
         // onward with the next bit of middleware
         return next();

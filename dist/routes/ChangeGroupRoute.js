@@ -33,7 +33,7 @@ export async function ChangeGroupRoute(request, response, next) {
         // if we have made it this far then change the group
         const updatedUser = await activeDB.UpdateGroupDB(IdOfUserThatIsChangingGroup, newGroup);
         // put data in response for middleware
-        response.data = { updatedUser: updatedUser };
+        response.data = [{ updatedUser: updatedUser }];
         response.message = `${updatedUser.username}'s group changed to ${newGroup}`;
         // onward with the next bit of middleware
         return next();

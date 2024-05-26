@@ -4,7 +4,7 @@ import { activeDB } from '../server.js';
 // } from '../database/databaseFactory.js';
 export async function UpdateUserRoleRoute(request, response, next) {
     if (!request.user) {
-        response.data = { error: 'Authorization' };
+        response.data = [{ error: 'Authorization' }];
         response.message = 'Not authorized to reset (not logged in)';
         return next();
     }
@@ -36,7 +36,7 @@ export async function UpdateUserRoleRoute(request, response, next) {
                 else {
                     const result = await activeDB.UpdateRoleDB(userIdWhoNeedsRoleChanged, newRole);
                     // put data in response for middleware
-                    response.data = { newRole };
+                    response.data = [{ newRole }];
                     response.message = `Role changed for ${result.username} to ${result.role}`;
                     // onward with the next bit of middle
                     return next();
