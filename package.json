@@ -11,7 +11,8 @@
     "copy-dist-files": "rm -rf ./dist && cp -r ../hasura-auth-nodejs-server/dist ./",
     "copy-seed-files": "rm -rf ./examples/* && cp -r ../hasura-auth-nodejs-server/examples/example-users.json ./examples/",
     "copy-localdatabase-files": "rm -rf ./local-database && cp -r ../hasura-auth-nodejs-server/local-database ./",
-    "serve": "npm run load && npm run start"  },
+    "serve": "npm run load && npm run start"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
